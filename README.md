@@ -1,8 +1,19 @@
 # Hermes on Render
 
-Run [Hermes Agent](https://github.com/NousResearch/hermes-agent) as a 24/7 Telegram bot on Render's free tier.
+Run [Hermes Agent](https://github.com/NousResearch/hermes-agent) as a 24/7 Telegram bot on Render's free tier, using a DeepSeek proxy or API.
 
 > ⚠️ Render free tier sleeps after 15 min of inactivity. Use a Render Cron Job to ping `/health` every 10 minutes to keep it alive.
+
+## Your Setup
+
+- **Provider:** `custom` (OpenAI-compatible endpoint)
+- **Model:** `deepseek-reasoner`
+- **Local proxy:** `http://localhost:8000/v1` (won't work from Render!)
+
+For Render, you need a **publicly reachable** endpoint. Options:
+1. **Expose your local proxy** — use ngrok, Cloudflare Tunnel, or Tailscale Funnel
+2. **Use DeepSeek API directly** — set `LLM_BASE_URL=https://api.deepseek.com/v1`
+3. **Use OpenRouter** — set `LLM_BASE_URL=https://openrouter.ai/api/v1`
 
 ## Quick Deploy
 
@@ -24,9 +35,8 @@ Run [Hermes Agent](https://github.com/NousResearch/hermes-agent) as a 24/7 Teleg
    - **Health Check Path:** `/`
 6. Add environment variables:
    - `TELEGRAM_BOT_TOKEN` — your bot token from step 1
-   - `LLM_BASE_URL` — your LLM API endpoint
-   - `LLM_API_KEY` — your LLM API key
-   - `LLM_MODEL` — model name (e.g., `deepseek-chat`)
+   - `LLM_BASE_URL` — your publicly reachable proxy URL
+   - `LLM_MODEL` — `deepseek-reasoner`
 7. Click **Deploy Web Service**
 
 ### 3. Keep It Awake (Anti-Sleep)
@@ -46,15 +56,25 @@ Open Telegram, search for your bot's username, and start chatting!
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `TELEGRAM_BOT_TOKEN` | Yes | Telegram bot token from @BotFather |
-| `LLM_BASE_URL` | Yes | OpenAI-compatible API base URL |
-| `LLM_API_KEY` | Yes | API key for your LLM provider |
-| `LLM_MODEL` | Yes | Model name (e.g., `deepseek-chat`, `gpt-4o`) |
+| `LLM_BASE_URL` | Yes | Publicly reachable OpenAI-compatible endpoint (not localhost!) |
+| `LLM_MODEL` | Yes | Model name (`deepseek-reasoner`) |
 
-See `.env.example` for provider-specific examples.
+If your proxy requires authentication, add the API key env var your proxy expects.
 
-## Using a Different Platform
+## Exposing Your Local Proxy
 
-To use Discord/Slack/WhatsApp instead of Telegram, edit `start.sh` and change the gateway config section + add the appropriate env vars.
+Quickest free option — Cloudflare Tunnel:
+
+```bash
+# Install
+curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o ~/.local/bin/cloudflared
+chmod +x ~/.local/bin/cloudflared
+
+# Expose your local proxy
+cloudflared tunnel --url http://localhost:8000
+```
+
+Copy the `*.trycloudflare.com` URL and use it as `LLM_BASE_URL` on Render.
 
 ## Ephemeral Storage Warning
 
