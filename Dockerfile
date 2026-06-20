@@ -13,7 +13,8 @@ WORKDIR /app/deepseek-proxy
 RUN pip install --no-cache-dir -r requirements.txt
 
 # ---- Hermes Agent ----
-RUN curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
+# Non-interactive install: skip setup wizard, we write config at runtime
+RUN curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash -s -- --non-interactive --skip-setup
 ENV PATH="/root/.local/bin:$PATH"
 ENV HERMES_HOME=/data/.hermes
 RUN mkdir -p /data/.hermes
